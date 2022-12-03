@@ -35,14 +35,6 @@ impl Choice {
             _ => Err(()),
         }
     }
-
-    pub fn solve(&self, result: &str) -> Self {
-        match result {
-            "win" => Choice::from_i32(*self as i32 + 1).unwrap(),
-            "loose" => Choice::from_i32(*self as i32 + 2).unwrap(),
-            _ => Choice::from_i32(*self as i32).unwrap(),
-        }
-    }
 }
 
 impl FromStr for Match {
@@ -88,21 +80,6 @@ mod tests {
         assert_eq!(Choice::from_i32(1).unwrap(), Choice::Rock);
         assert_eq!(Choice::from_i32(2).unwrap(), Choice::Paper);
         assert_eq!(Choice::from_i32(3).unwrap(), Choice::Scissor);
-    }
-
-    #[test]
-    fn choice_solve() {
-        assert_eq!(Choice::Rock.solve("win"), Choice::Paper);
-        assert_eq!(Choice::Rock.solve("draw"), Choice::Rock);
-        assert_eq!(Choice::Rock.solve("loose"), Choice::Scissor);
-
-        assert_eq!(Choice::Paper.solve("win"), Choice::Scissor);
-        assert_eq!(Choice::Paper.solve("draw"), Choice::Paper);
-        assert_eq!(Choice::Paper.solve("loose"), Choice::Rock);
-
-        assert_eq!(Choice::Scissor.solve("win"), Choice::Rock);
-        assert_eq!(Choice::Scissor.solve("draw"), Choice::Scissor);
-        assert_eq!(Choice::Scissor.solve("loose"), Choice::Paper);
     }
 
     #[test]

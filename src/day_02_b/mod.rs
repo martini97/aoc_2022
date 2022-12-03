@@ -4,9 +4,9 @@ use crate::day_02_a::Choice;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum MatchResult {
-    Win = 6,
-    Draw = 3,
     Loose = 0,
+    Draw = 1,
+    Win = 2,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -53,8 +53,8 @@ impl MatchResult {
 impl Match {
     pub fn score(&self) -> i16 {
         let result = self.result.to_owned() as i16;
-        let me = self.other.solve(self.result.to_str()) as i16;
-        return result + me;
+        let other = self.other.to_owned() as i16;
+        return 3 * result + (result + 1 + other) % 3 + 1;
     }
 }
 
