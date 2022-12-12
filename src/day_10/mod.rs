@@ -1,16 +1,17 @@
+use std::collections::VecDeque;
+
 use std::{ops::Rem, str::FromStr};
 
 pub struct CPU {
     pub register: isize,
     pub cycle: usize,
-    pub instructions: Vec<Instruction>,
+    pub instructions: VecDeque<Instruction>,
     pub crt: [char; 240],
 
-    instruction_index: usize,
-    loaded_instruction: Option<Instruction>,
+    state: Option<Instruction>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub enum Instruction {
     Noop,
     AddX(isize),
@@ -34,47 +35,34 @@ impl CPU {
         return CPU {
             register: 1,
             cycle: 1,
-            instructions,
+            instructions: VecDeque::from(instructions),
+            state: None,
             crt: ['.'; 240],
-
-            instruction_index: 0,
-            loaded_instruction: None,
         };
     }
 
     fn apply_instruction(&mut self) {
-        if let Some(instruction) = self.loaded_instruction {
-            match instruction {
-                Instruction::Noop => panic!("should not load Noop instruction"),
-                Instruction::AddX(value) => {
-                    self.register += value;
-                    self.loaded_instruction = None;
-                }
-            };
-            self.instruction_index += 1;
-            return;
-        }
-
-        let instruction = self.instructions[self.instruction_index];
-
-        match instruction {
-            Instruction::Noop => {
-                self.instruction_index += 1;
+        self.state = match self.state {
+            Some(Instruction::Noop) => panic!("Should not load noop into state."),
+            Some(Instruction::AddX(value)) => {
+                self.register += value;
+                None
             }
-            Instruction::AddX(_) => {
-                self.loaded_instruction = Some(instruction);
-            }
+            None => match self.instructions.pop_front().expect("No more instructions") {
+                Instruction::Noop => None,
+                Instruction::AddX(v) => Some(Instruction::AddX(v)),
+            },
         };
     }
 
     pub fn update_crt(&mut self) {
-        let index = (self.cycle - 1).min(self.crt.len() - 1);
+        let index = self.cycle - 1;
         let position = (index).rem(40);
         let sprite = (self.register - 1)..=(self.register + 1);
         self.crt[index] = if sprite.contains(&(position as isize)) {
-            '#'
+            '█'
         } else {
-            '.'
+            ' '
         };
     }
 
@@ -130,5 +118,38 @@ mod tests {
         cpu.tick();
         assert_eq!(cpu.register, 5);
         assert_eq!(cpu.cycle, 4);
+    }
+
+    #[test]
+    fn test_example() {
+        let instructions = vec![
+            Instruction::Noop,
+            Instruction::AddX(3),
+            Instruction::AddX(-5),
+        ];
+        let mut cpu = CPU::new(instructions);
+
+        assert_eq!(cpu.register, 1);
+        assert_eq!(cpu.cycle, 1);
+
+        cpu.tick();
+        assert_eq!(cpu.register, 1);
+        assert_eq!(cpu.cycle, 2);
+
+        cpu.tick();
+        assert_eq!(cpu.register, 1);
+        assert_eq!(cpu.cycle, 3);
+
+        cpu.tick();
+        assert_eq!(cpu.register, 4);
+        assert_eq!(cpu.cycle, 4);
+
+        cpu.tick();
+        assert_eq!(cpu.register, 4);
+        assert_eq!(cpu.cycle, 5);
+
+        cpu.tick();
+        assert_eq!(cpu.register, -1);
+        assert_eq!(cpu.cycle, 6);
     }
 }

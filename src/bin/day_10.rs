@@ -17,13 +17,13 @@ fn main() {
     let mut cpu = CPU::new(instructions);
     let mut signal_strength = 0;
 
-    for i in 1..240 {
+    for i in 1..=240 {
         if is_interesting(i) {
             signal_strength += cpu.get_signal_strength();
         }
         cpu.tick();
     }
 
-    println!("{:?}", signal_strength);
+    println!("signal strength: {:?}", signal_strength);
     cpu.draw();
 }
