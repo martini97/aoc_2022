@@ -1,66 +1,29 @@
-use aoc_2022::utils::read_input;
+use std::str::FromStr;
 
-#[derive(Debug)]
-struct MachineState {
-    value: isize,
-}
-
-#[derive(Debug)]
-enum MachineOp {
-    Noop,
-    AddX(isize),
-}
-
-#[derive(Debug)]
-struct Machine {
-    state: MachineState,
-}
-
-impl Machine {
-    fn apply(&mut self, op: &MachineOp) {
-        self.state.value += match *op {
-            MachineOp::Noop => 0,
-            MachineOp::AddX(x) => x,
-        };
-    }
-}
+use aoc_2022::{
+    day_10::{Instruction, CPU},
+    utils::read_input,
+};
 
 fn main() {
-    let ops = read_input(10, true)
+    let instructions = read_input(10, false)
         .trim()
         .lines()
-        .flat_map(|op| {
-            let (cmd, arg) = op.split_at(4);
-            return match cmd {
-                "noop" => vec![MachineOp::Noop],
-                "addx" => vec![
-                    MachineOp::Noop,
-                    MachineOp::AddX(arg.trim().parse().unwrap()),
-                ],
-                _ => panic!(),
-            };
-        })
-        .collect::<Vec<MachineOp>>();
+        .map(|s| Instruction::from_str(s).unwrap())
+        .collect::<Vec<Instruction>>();
 
-    let mut machine = Machine {
-        state: MachineState { value: 1 },
-    };
+    let is_interesting = |i: usize| (i as isize - 20) % 40 == 0;
 
+    let mut cpu = CPU::new(instructions);
     let mut signal_strength = 0;
 
-    for i in 0..ops.len() {
-        let cycle = (i as isize) + 1isize;
-        machine.apply(&ops[i]);
-        if cycle == 20
-            || cycle == 60
-            || cycle == 100
-            || cycle == 140
-            || cycle == 180
-            || cycle == 220
-        {
-            signal_strength += cycle * machine.state.value;
+    for i in 1..240 {
+        if is_interesting(i) {
+            signal_strength += cpu.get_signal_strength();
         }
+        cpu.tick();
     }
 
     println!("{:?}", signal_strength);
+    cpu.draw();
 }

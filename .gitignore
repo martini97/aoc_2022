@@ -1,3 +1,3 @@
 /target
-./inputs/*
-!./inputs/*-test.txt
+inputs/*.txt
+!inputs/*-test.txt
